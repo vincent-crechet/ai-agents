@@ -1,0 +1,1266 @@
+= {su-name}
+:last-update-label!:
+:encoding: utf-8   
+:lang: en   
+:numbered:
+:icons: font   
+:imagesdir: .adoc_images   
+:product: Remisol
+:si-name: MsgServer
+:su-name: MsgServer
+:product-version: Version X.X
+:document-name: Software Unit Detailed Design - MsgServer
+:document-number: 2.5.2.3
+
+
+include::../cover-page.adoc[]
+
+== Architectural Overview
+The Message Server functions as a message bus within the system, allowing communication between system components through TCP messages. It can operate both locally and over a network. Clients subscribe to specific event types and associated tasks, and the Message Server is responsible for forwarding received messages to all relevant subscribers.
+
+
+Content and description of the messages will be described below.
+
+
+[plantuml]
+....
+include::../diagrams/structurizr-MsgServerSUInArchitecture.puml[]
+.... 
+
+=== Client Software Units
+
+Message sender and subscribers in the system are:
+
+* Remisol
+* Differential
+* Dashboard
+* Instruments High Layers
+* Hosts High Layers
+* Radv License
+* Radv Launcher
+* Radv Monitor
+* Service Manager
+* BarCode printer
+* Msg Server
+* Msg Buffer
+* Msg Config
+* RestDump
+* EQC
+* Viewer Service
+* RPrint
+
+====
+
+Each of these components will connect and register to the Msg Server during their start. +
+The Msg Server service does not access to the database. +
+The subscribers don't need to have a database access to connect to the Msg Server but they need to be connected in the same network as they will connect to it through TCP.
+
+====
+
+
+== Design
+
+=== Components
+
+[plantuml]
+....
+include::../diagrams/structurizr-MsgServerSUInArchitecture.puml[]
+.... 
+
+
+
+==== MsgServer
+Message queuing service that receives / delivers messages between clients based on their subscription through TCP / IP protocol. 
+
+==== MsgBuffer
+In charge of buffering and retransmit messages that could not be delivered by the local MsgServer due to lack of appropriate connected client.
+Data are kept in memory (more information in the "Processing" chapter).
+
+==== MsgConfig
+Expert application allowing to customize MsgServer subscription if necessary (refer to the main chapter about the tool).
+
+
+=== Interfaces
+
+To be able to communicate with the Msg Server, clients must instantiate 2 kinds of classes: 
+
+* For the receiving part, a derived class of 'IObjectFeedBack'
+* For the sending part, a derived class of 'SecureComMsg'
+
+A link between the 2 parts may be done by calling this method of the SecureComMsg class:
+
+[source,c++]
+----
+void setConnection(IObjectFeedBack* _mySink,int _serverId=-1);
+----
+
+[NOTE]
+Create a feedback class for the receiving part is not mandatory. A module can act only as a sender if it is not interested by any notifications.
+
+==== Message sending
+
+As mentioned before, to be able to send a message, clients must instanciate derived class of  `SecureComMsg`. +
+By using the different methods provided by the interfaces, the clients will be able to send a formatted message ready to be sent to the Msg Server.
+
+Available interfaces are:
+
+[plantuml]
+....
+
+left to right direction
+
+class CommMsg
+class SecureComMsg
+ 
+SecureComMsg *-- CommMsg
+
+CommMsg *-- IObjectFeedback
+
+class AutomationOrder {
+    +void sampleRecall(int _tubid, int _aliquotId, int _lineUnitId, int _anaid)
+}
+ 
+class BarcodeNotify {
+    +void printLabel(int _iTaskType, int _TaskID, ...)
+}
+ 
+class BarcodeOrder {
+    +void manualPrintLabel(int _barcodeID, ...)
+}
+ 
+class DiagnosticNotify {
+    +void diagnosticReceived(int _taskId, int tubid, int dosid, int demid)
+    +void testReceived(int _taskId, int tubid, int dosid, int demid)
+}
+ 
+class DiagnosticOrder {
+    +void askTubeDiagnostic(int _tubid, int _diagID)
+    +void askRequestDiagnostic(int _dosid, int _diagID)
+    +void askPatientDiagnostic(int _demid, int _diagID)
+    +void askTubeTest(int _tubid, int _diagID, TCHAR* _digName)
+    +void askRequestTest(int _dosid, int _diagID, TCHAR* _digName)
+    +void askPatientTest(int _demid, int _diagID, TCHAR* _digName)
+}
+
+class DictionaryNotify {
+    +void rulesUpdated(int _taskType, int _taskId)
+    +void restartRequested(int _taskType, int _taskId)
+    +void anaCodeUpdated(int _taskType, int _taskId)
+    +void connectionUpdated(int _taskType, int _taskId)
+    +void paramUpdated(int _taskType, int _taskId, int _chiid)
+    +void resetIdsCache(int _taskType, int _taskId)
+    +void QcUpdated(int _taskType, int _taskId)
+    +void userRightsUpdated(int _taskType, int _taskId, int _userid)
+}
+ 
+class DisplaySend {
+    +void display(int origine_task, int origine_id, const char* str)
+    +void displayLsResource(int origine_task, int origine_id, int _iResourceId)
+    +void display(int origine_task, int origine_id, const wchar_t* str)
+    +void netMessageBox(int origine_task, int origine_id, const TCHAR* _str, unsigned long _uint)
+}
+ 
+class GenericBroadcast {
+    +void manualBlockRefresh(int _origineTaskID)
+}
+ 
+class HostNotify {
+    +void incomingClear(int _tubid, bool _fullClear, int _hosid)
+    +void incomingProg(int _tubid, int _hosid, bool _bUpdateDemo)
+    +void incomingHqProg(int _tubid, int _hosid, int _anaid)
+    +void incomingRerun(int _tubid, int _hosid, bool _bUpdateDemo)
+    +void controlRecallDone(int _tubid, int _hosid)
+    +void recallDone(int _tubid, int _hosid)
+}
+ 
+class HostOrder {
+    +void recallRun(int _hosid, int64_t _runid)
+    +void recallTube(int _hosid, int _tubid)
+    +void NotifyProgToHost(int _hosid, int _tubid)
+    +void hostQuery(int _hosid, TCHAR* _sampleidList)
+    +void trackRecall(int _hosid, int _frameId)
+}
+ 
+class InstrumentNotify {
+    +void clearDone(int _status, int _progid, int _anaid)
+    +void simulclearDone(int _status, int _tubid, int _anaid)
+    +void progDone(int _status, int _tubid, int _anaid, int _aliquotid)
+    +void incomingResult(int _tubid, int _anaid)
+    +void incomingControl(int _tubid, int _anaid)
+    +void incomingResultWithProgRequest(int _tubid, int _anaid)
+    +void arrayEndOfRun(...)
+}
+
+class InstrumentOrder {
+    +void download(int tubid, int anaid);
+    +void clearCup (int tubid, int anaid);
+    +void clearDownload (int tubid, int anaid);
+    +void partialClearNotify(int progid, int anaid);
+    +void genericProg(int _progid,int _anaid, int _clear); 
+    +void areYouThere(int _taskType,int _taskId );
+    +void setDefaultRackArray(String _rack,int _anaid);
+}
+
+class IntranetSend {
+    +void integration(int _intranetid,unsigned long  tubid);
+}
+
+class LicenseServiceNotify {
+	+void licenseServiceStarting(String _sLicenseServer);
+}
+
+class LicenseServiceRequest {
+	+LicenseLogonStatus sendLogonRequest(const TCHAR* _szLicenseServer,
+     const TCHAR* _szClientType, const TCHAR* _szId);
+	+void sendLogoutRequest(const TCHAR* _szLicenseServer,
+     const TCHAR* _szClientType, const TCHAR* _szId);
+	+bool sendPMFData(const TCHAR* _szLicenseServer,
+     const TCHAR* _szPMFData);
+	+bool isMigrationNeeded(const TCHAR* _szLicenseServer,
+     const TCHAR* _szDongleNumber);
+	+String getLicenseData(const TCHAR* _szLicenseServer);
+}
+ 
+class ModuleNotify {
+    +void sampleLateInfo(const TCHAR* _szSampleID, const TCHAR* _szTestList, 
+    DateTime _dtSampleLate, const TCHAR* _szComment, int _iIndex, int _iMax);
+}
+
+class MonitoringNotify {
+	+void areYouExistingDone(int _taskType, int _taskId, int _status);
+	+void moduleStarted(int _taskType, int _taskId);
+	+void moduleStopping(int _taskType, int _taskId);
+	+void commStatus(int _taskType, int _taskId, int _status);
+	+void serviceError(int _taskType, int _taskId, const TCHAR* _errorInfo);
+	+void serviceError(const TCHAR* _errorInfo);
+	+void serviceStatus(const TCHAR* _computerName, const TCHAR* _serviceStatus);
+	+void moduleStarting(int _taskType, int _taskId);
+	+void moduleStopped(int _taskType, int _taskId);
+}
+
+class MonitoringRequest {
+    +void areYouExistingRequest(int _taskType, int _taskId);
+	+void disableRequest(int _taskType, int _taskId);
+	+void enableRequest(int _taskType, int _taskId);
+	+void stopRequest(int _taskType, int _taskId);
+	+void stopService(int _taskType, int _taskId, const TCHAR* _serviceName);
+	+void startService(int _taskType, int _taskId, const TCHAR* _serviceName);
+	+void resetService(int _taskType, int _taskId, const TCHAR* _serviceName);
+	+void getServiceStatus(int _taskType, int _taskId, const TCHAR* _serviceList);
+}
+
+class MsgBufferRequest {
+    +void flushMsgBufferCache();
+}
+
+class RemisolOrder {
+    +void QcOnCallExport(int _computerID, TCHAR* _szResidList);
+}
+
+class RequestNotify {
+    +void programmationDone(int _origineId,int _dosid,int _tubid);
+    +void requestRefresh(int _origineId,int _dosid,int _tubid);
+    +void rulesPlayed(int _origineId,int _dosid,int _tubid);  
+}
+
+class RerunReflexSend {
+    +void rerunMessage(int anaid,TCHAR* str);
+    +void reflexMessage(int anaid,TCHAR* str);
+}
+
+SecureComMsg <|-- AutomationOrder
+SecureComMsg <|-- BarcodeNotify
+SecureComMsg <|-- BarcodeOrder
+SecureComMsg <|-- DiagnosticNotify
+SecureComMsg <|-- DiagnosticOrder
+SecureComMsg <|-- DictionaryNotify
+SecureComMsg <|-- DisplaySend
+SecureComMsg <|-- GenericBroadcast
+SecureComMsg <|-- HostNotify
+SecureComMsg <|-- HostOrder
+SecureComMsg <|-- InstrumentNotify
+SecureComMsg <|-- InstrumentOrder
+SecureComMsg <|-- IntranetSend
+SecureComMsg <|-- LicenseServiceNotify
+SecureComMsg <|-- LicenseServiceRequest
+SecureComMsg <|-- ModuleNotify
+SecureComMsg <|-- MonitoringNotify
+SecureComMsg <|-- MonitoringRequest
+SecureComMsg <|-- MsgBufferRequest
+SecureComMsg <|-- RemisolOrder
+SecureComMsg <|-- RequestNotify
+SecureComMsg <|-- RerunReflexSend
+
+....
+
+Depending of the kind of messages that the clients want to send to the Msg Server, the Msg Server client class of the application must derive from one or several of these multiple classes. 
+
+Example of the declaration of the Msg Server client class of RADVL service: +
+
+[source,c++]
+----
+class RadvLauncherComMsg :	public MonitoringNotify,
+							public MonitoringRequest,
+							public DictionaryNotify,
+							public DisplaySend
+{
+public :
+            RadvLauncherComMsg(bool _dummyMode=false);
+       bool isConnected();
+};
+----
+
+The RADV License service will be able to send notifications of these 4 classes. If the RADVL would need to send a new kind of notification, the associated class would need to be added here.
+
+==== Message receiving
+
+To be able to receive a message, clients must instanciate derived class of  `IObjectFeedBack`. +
+By using the different methods provided by the interfaces, the clients will be able to receive feedbacks from the Msg Server.
+
+[NOTE]
+Inherit the feedback interfaces does not guarantee to receive all linked notifications from the Msg Server. The client must first register to the different messages for the methods of the interface to be called (see next section regarding registration).
+
+* IObjectFeedBack: Base interface for message subscription
+
+[plantuml]
+....
+ 
+left to right direction
+
+interface IObjectFeedBack {
+    +bool onEvent(void* buff, DWORD len)
+}
+ 
+interface IAutomationOrderFeedBack {
+    +void receiveSampleRecall(int _tubid, int _aliquotId, int _lineUnitId)
+}
+ 
+interface IBarcodeNotifyFeedBack {
+    +void receivePrintLabel(TCHAR* name, TCHAR* firstname, TCHAR* sampleid, ...)
+}
+ 
+interface IBarcodeOrderFeedBack {
+    +void receiveManualPrintLabel(TCHAR* name, TCHAR* firstname, TCHAR* sampleid, ...)
+}
+ 
+interface IDiagnosticNotifyFeedBack {
+    +void receiveDiagnostic(int _taskId, int tubid,int dosid,int demid)
+    +void receiveTest(int _taskId,int tubid,int dosid,int demid)
+}
+ 
+interface IDiagnosticOrderFeedBack {
+    +void receiveAskTubeDiagnostic(int _tubid,int _diagID)
+    +void receiveAskRequestDiagnostic(int _demid,int _diagID)
+    +void receiveAskPatientDiagnostic(int _tubid,int _diagID)
+    +void receiveAskTubeTest(int _tubid,int _diagID,TCHAR* _diagName)
+    +void receiveAskRequestTest(int _dosid,int _diagID,TCHAR* _diagName)
+    +void receiveAskPatientTest(int _demid,int _diagID,TCHAR* _diagName)
+}
+
+interface IDictionaryNotifyFeedBack {
+    +void receiveRulesUpdated()
+    +void receiveRestartRequested()
+    +void receiveAnaCodeUpdated()
+    +void receiveConnectionUpdated(int _taskType,int _taskId)
+    +void receiveParamUpdated(int _chiid)
+    +void receiveResetIdsCache()
+    +void receiveQcUpdated()
+    +void receiveUserRightsUpdated(int _userid)
+}
+ 
+interface IDisplayFeedBack {
+    +void receiveDisplay(TCHAR* str)
+    +void receiveDisplayLsResource(int _iResourceId)
+    +void receiveDisplay(TCHAR* str, int origine_task, int origine_id)
+    +void receiveNetMessageBox(TCHAR* _str,unsigned long _uint)
+}
+ 
+interface IGenericBroadcastFeedBack {
+    +void receiveManualBlockRefresh()
+}
+ 
+interface IHostNotifyFeedBack {
+    +void receiveIncomingClear(int _tubid, bool _fullClear, int _hosid)
+    +void receiveIncomingProg(int _tubid,int _hosid,bool _bUpdateDemo)
+    +void receiveControlRecallDone(int _tubid,int _hosid)
+    +void receiveRecallDone(int _tubid,int _hosid)
+    +void receiveIncomingRerun(int _tubid,int _hosid,bool _bUpdateDemo)
+    +void receiveIncomingHqProg(int _tubid,int _hosid,int _anaid)
+}
+ 
+interface IHostOrderFeedBack {
+    +void receiveRecallRun(int64_t _runid)
+    +void receiveNotifyProgToHost(int _tubid)
+    +void receiveTrackRecall(int _frameID)
+    +void receiveRecallTube(int _tubid)
+    +void receiveHostQuery(TCHAR* _sampleIdList)
+}
+ 
+interface IInstrumentNotifyFeedBack {
+    +void receiveClearDone(int _status, int _progid, int _anaid)
+    +void receiveSimulclearDone(int _status, int _tubid, int _anaid)
+    +void receiveProgDone(int _status, int _tubid, int _anaid, int _aliquotid)
+    +void receiveIncomingResult(int _tubid, int _anaid)
+    +void receiveIncomingControl(int _tubid, int _anaid)
+    +void receiveIncomingResultWithProgRequest(int _tubid, int _anaid)
+}
+
+interface IInstrumentOrderFeedBack {
+    +void receiveDownload(int _tubid,int _anaid);
+    +void receiveClearCup (int _tubid,int _anaid);
+    +void receiveClearDownload (int _tubid,int _anaid);	  
+    +void receivePartialClearNotify(int _progid,int _anaid);
+    +void receiveGenericProg(int _progid,int _anaid,int _clear);
+    +void receiveAreYouThere();
+    +void receiveSetDefaultRackArray(String _rack);
+}
+
+interface IIntranetFeedback {
+    +void receiveIntegration(unsigned long tubid,TCHAR* _eventName)=0;
+}
+
+interface ILicenseServiceNotifyFeedBack {
+    +void receiveLicenseServiceStarting(int _taskId);
+}
+
+interface ILicenseServiceRequestFeedBack {
+    +LicenseLogonStatus receiveLogonRequest(const TCHAR* _szClientType,
+     const TCHAR* _szId);
+	+void receiveLogoutRequest(const TCHAR* _szClientType,
+     const TCHAR* _szId);
+	+bool receivePMFData(const TCHAR* _szPMFData);
+	+bool receiveIsMigrationNeeded(const TCHAR* _szDongleNumber);
+	+String receiveGetLicenseData();
+}
+
+interface IModuleNotifyFeedBack {
+    +void receiveSampleLateInfo(const TCHAR* _szSampleID,
+     const TCHAR* _szTestList, DateTime _dtSampleLate,
+      const TCHAR* _szComment, int _iIndex, int _iMax);
+}
+
+interface IMonitoringNotifyFeedBack {
+	+void receiveAreYouExistingDone(int _taskType,
+     int _taskId, int _status);
+	+void receiveCommStatus(int _taskType, int _taskId, int _status);
+	+void receiveModuleStarted(int _taskType, int _taskId);
+	+void receiveModuleStopping(int _taskType, int _taskId);
+	+void receiveServiceError(int _taskType, int _taskId,
+     TCHAR* _errorMessage);
+	+void receiveServiceStatus(const TCHAR* _computerName,
+     const TCHAR* _servicesList);
+	+void receiveModuleStarting(int _taskType, int _tadkId);
+	+void receiveModuleStopped(int _taskType, int _tadkId);
+}
+
+interface IMonitoringRequestFeedBack {
+    +void receiveAreYouExistingRequest();
+	+void receiveDisable(int _tasktype, int _taskid);
+	+void receiveEnable(int _tasktype, int _taskid);
+	+void receiveStopRequest();
+	+void receiveStopService(const TCHAR* _serviceName);
+	+void receiveStartService(const TCHAR* _serviceName);
+	+void receiveResetService(const TCHAR* _serviceName);
+	+void receiveGetServiceStatus(const TCHAR* _serviceList);
+}
+
+interface IMsgBufferFeedBack {
+	+void receiveDumpRequest();
+	+void receiveFlushCache();
+	+void receiveUndelivredMessage(TCHAR* _msgServerMessage);
+	+void receiveNewMsgServerClient();
+}
+
+interface IRemisolOrderFeedBack {
+    +void receiveQcOnCallExport(TCHAR* _szResidList);
+}
+
+interface IRequestNotifyFeedBack {
+    +void receiveProgrammationDone(int _dosid,int _tubid);
+    +void receiveRequestRefresh(int _dosid,int _tubid);
+    +void receiveRulesPlayed(int _dosid,int _tubid);
+}
+
+interface IRerunReflexFeedBack {
+    +void receiveRerunMessage(TCHAR* str);
+    +void receiveReflexMessage(TCHAR* str);
+}
+
+
+ 
+IObjectFeedBack <|-- IAutomationOrderFeedBack
+IObjectFeedBack <|-- IBarcodeNotifyFeedBack
+IObjectFeedBack <|-- IBarcodeOrderFeedBack
+IObjectFeedBack <|-- IDiagnosticNotifyFeedBack
+IObjectFeedBack <|-- IDiagnosticOrderFeedBack
+IObjectFeedBack <|-- IDictionaryNotifyFeedBack
+IObjectFeedBack <|-- IDisplayFeedBack
+IObjectFeedBack <|-- IGenericBroadcastFeedBack
+IObjectFeedBack <|-- IHostNotifyFeedBack
+IObjectFeedBack <|-- IHostOrderFeedBack
+IObjectFeedBack <|-- IInstrumentNotifyFeedBack
+IObjectFeedBack <|-- IInstrumentOrderFeedBack
+IObjectFeedBack <|-- IIntranetFeedback
+IObjectFeedBack <|-- ILicenseServiceNotifyFeedBack
+IObjectFeedBack <|-- ILicenseServiceRequestFeedBack
+IObjectFeedBack <|-- IModuleNotifyFeedBack
+IObjectFeedBack <|-- IMonitoringNotifyFeedBack
+IObjectFeedBack <|-- IMonitoringRequestFeedBack
+IObjectFeedBack <|-- IMsgBufferFeedBack
+IObjectFeedBack <|-- IRemisolOrderFeedBack
+IObjectFeedBack <|-- IRequestNotifyFeedBack
+IObjectFeedBack <|-- IRerunReflexFeedBack
+
+....
+
+Depending of the registration and the kind of messages that the clients want to receive from the other components (through Msg Server), the Msg Server client feedback class of the application must derive from IObjectFeedBack and one or several of these multiple interfaces. 
+
+Example of the declaration of the Msg Server client feedback class of RADVL service: +
+
+[source,c++]
+----
+class RadvLauncherFeedBack :	public IObjectFeedBack,
+								public IMonitoringRequestFeedBack,
+								public IDictionaryNotifyFeedBack
+{
+public :
+							RadvLauncherFeedBack();
+				ComMsg*		getComMsg(){return IObjectFeedBack::getComMsg();}
+
+	// IMonitoringRequestFeedBack
+	virtual		void		receiveDisable(int _iTaskType, int _iTaskID);
+	virtual		void		receiveEnable(int _iTaskType, int _iTaskID);
+	virtual		void		receiveAreYouExistingRequest();
+	virtual		void		receiveStopRequest();
+	virtual		void		receiveStopService(const TCHAR* _szServiceName) {}
+	virtual		void		receiveStartService(const TCHAR* _szServiceName) {}
+	virtual		void		receiveResetService(const TCHAR* _szServiceName) {}
+	virtual		void		receiveGetServiceStatus(const TCHAR* _szServiceList) {}
+	// IDictionaryNotifyFeedBack
+	virtual 	void 		receiveRulesUpdated() {};
+	virtual 	void 		receiveRestartRequested();
+	virtual 	void 		receiveAnaCodeUpdated() {};
+	virtual 	void 		receiveConnectionUpdated(int _taskType,int _taskId);
+	virtual 	void 		receiveParamUpdated(int _chiid) {};
+	virtual 	void 		receiveResetIdsCache() {};
+	virtual		void		receiveQcUpdated() {};
+	virtual		void		receiveUserRightsUpdated(int _iUserID) {};
+
+				bool		onEvent(void* buff, DWORD len);
+};
+----
+
+In this example, the RADV License service will be able to receive notifications of these 2 interfaces. If the RADVL would need to receive a new kind of notification, the associated interface would need to be added here (with the associated overriden pure methods).
+
+[IMPORTANT]
+Reminder: if the client has not registered to the message linked to the method of the interface, this method will never be called in your components.
+
+==== Message subscription
+
+As said before, using the interface is not enough to register to a specific message.
+After have instantiated the Msg Server client class (and feedback), the "subscription" method of the "SecureComMsg" class must be called to:
+
+* Identity the component by the Msg Server,
+* Subscribe to any messages coming from other components
+
+[source,c++]
+----
+void SecureComMsg::subscription(
+    long _count,
+    NETMSG_Message* _messageList,
+    int _subscriber_type,
+    int _subscriber_id,
+    String _friendlyName,
+    bool _resetExisting=false,
+    int _serverId=-1);
+----
+
+* _count: Number of category of message to register (size of _messageList),
+* _messageList: Array of structure NETMSG_Message (see description in next chapter),
+* _subscriber_type: Type of component (must correspond to pre-defined type ID described in the next chapter),
+* _subscriber_id: ID of the component (must be unique among all the components of the same type),
+* _friendlyName: Meaningful name for the component, mainly used to identify the component in the log files,
+* _resetExisting: if true, the Msg Server will clear all existing registration for this component when receiving this subscription,
+* _serverId: Identify the ID of the Msg Server (in case of multiple Msg Server configured, see COMSERVER option).
+
+=== Data structures
+
+To subscribe to messages, we must provide a list of RMessage describing the messages we want to receive.
+
+[source,C++]
+----
+typedef struct RMessage
+{
+    int task_type;
+    int task_ID;
+    int event_type;
+    int event_number;
+}   
+----
+
+* task_type: Type of component (must correspond to pre-defined type ID described in the next chapter)
+* task_ID: ID of the component 
+
+==== Component Type
+
+Here is the list of existing components with their unique type (and defined C++ constant).
+
+* Instrument / Automation high level task: Type = 1 (NETMSG_INSTRUMENT_HIGH_TASK)
+    => Unique ID is the Anaid in the Anaidentifiant table of the database (of the main subunit). +
+* Host high level task: Type = 2 (NETMSG_HOST_HIGH_TASK)
+    => Unique ID id the Hosid in the HOST table of the database. +
+* Remisol: Type = 3 (NETMSG_REMISOL)
+    => Unique ID is the ComputerID in the COMPUTER table of the database. +
+* Barcode task: Type = 4 (NETMSG_BARCODE_TASK)
+    => Unique ID is the BDI in the BARCODE table of the database. +
+* Differential: Type = 8 (NETMSG_INTRANET_TASK)
+    => Unique ID is the ComputerID in the COMPUTER table of the database. +
+* RADVL: Type = 11 (NETMSG_RADVLAUNCHER_TASK)
+    => Unique ID is the ComputerID in the COMPUTER table of the database. +
+* Radv Monitor: Type = 12 (NETMSG_MONITORING_TASK)
+    => Unique ID is the ComputerID in the COMPUTER table of the database. +
+* Msg Config: Type = 13 (NETMSG_CONFIG_TASK)
+    => Special behavior, the ID is the SubscriptionID in the SUBSCRIPTIONCONFIG table of the database (only for type = 13) +
+* Msg Buffer: Type = 14 (NETMSG_MSGBUFFER_TASK)
+    => Not identified by an ID, it is automatically associated to the local Msg Server (0). +
+* RestDump: Type = 15 (NETMSG_RESTDUMP_TASK)
+    => This tool does not register (used to broadcast messages) +
+* Dashboard: Type = 19 (NETMSG_SAMPLELATE_TASK)
+    => Specific Dashboard is not identified, ID is then 0. +
+* Service Manager:  Type = 20 (NETMSG_SERVICEMANAGER_TASK)
+    => ID is the Computer Name (hash) where the service is started (No database connection). +
+* RADVL License: Type = 21 (NETMSG_LICENSE_MANAGER_TASK)
+    => ID is the Computer Name (hash) where the service is started (No database connection). +
+* EQC: Type = 22 (NETMSG_EQC_TASK)
+    => Unique ID is the moduleID of the computer in the ModuleView view of the database. +
+* RPrint: Type = 23 (NETMSG_RPRINT_TASK)
+    => Unique ID is the ComputerID in the COMPUTER table of the database. +
+* Viewer Service: Type = 24 (NETMSG_VIEWERSERVICE_TASK)
+    => ID is the Computer Name (hash) where the service is started (No database connection). 
+* Msg Server: Type = 25 (NETMSG_MSGSERVER_TASK)
+    => Not identified by an ID (0).
+
+==== Message Type
+
+[width="100%",options="header",]
+|===
+|Event Name (and linked Interface) |Event ID |Parameters List / Comment / description |Subscription based on the module : |Unique +
+Receiver |Can be stored by msgBuffer
+|* * |* * |All messages (except Display and synchron) have a common parameter list composed of : +
+MessageType +
+TaskType +
+TaskID +
+messageType +
+messageID |identified by TaskType / TaskID from common parameters list |MsgServer will transmit the message to only one subscriber (remisol master is the favorite target) |If no subscriber, the message is temporary stored in MsgBuffer
+|||||| 
+|AutomationOrder | | | | |
+|SAMPLE_RECALL |77 |param 1: tubid +
+param 2 : aliquot id +
+param 3 : lineunitid |Receiving instrument |no |yes
+|  |* * |  |  |_progid,_anaid,_clear |* *
+|BarcodeNotify | | | | |
+|NETMSG_BARCODE_NOTIFY_PRINTLABEL |11 |Notification that a label should be printed. Barcode printer that have subscribed will deal with that. |Remisol or host after printer creation |no |no
+|NETMSG_BARCODE_NOTIFY_PRINTQCLABEL |83 |Notification that a QC label should be printed. Barcode printer that have subscribed will deal with that |Remisol after QC |no |no
+|  |* * |  |  |* * |* *
+|BarcodeOrder | | | | |
+|NETMSG_BARCODE_ORDER_PRINTLABEL |84 |Ask for printing to a specific barcode printer (barcodeid as parameter) |Receiving barcode |no |no
+|  |* * |  |  |* * |* *
+|DictionaryNotify | | | | |
+|RULES_UPDATED |27 |no param |Sending Remisol |no |yes
+|RESTART_REQUESTED |28 |no param |All the modules |no |yes
+|ANACODE_UPDATED |36 |no param |no param |no |yes
+|DICTIONARY_NOTIFY_CONNECTION_UPDATED |71 |no param |Receiving Instrument/host |no |yes
+|DICTIONARY_NOTIFY_PARAM_UPDATED |72 |no param |Sending Remisol |no |yes
+|DICTIONARY_NOTIFY_RESET_IDS |75 |no param |Sending Remisol |no |yes
+|DICTIONARY_NOTIFY_QC_UPDATED |82 |no param |no param |no |yes
+|NETMSG_DICTIONARY_NOTIFY_USER_RIGHTS_UPDATED |101 |param 1: userid |no param |no |no
+|  |* * |  |  |  | 
+|DisplaySend | | | | |
+|DISPLAY |8 |8 taskType taskID <str> +
+with str string containing the message to display. EV#XXX tag is used to filter receipt +
+the message number |Sending module |no |yes
+|DISPLAY_LS_RESOURCE |9 |9 taskType taskID <ls resource id> +
+with ls resource id corresponding to the string message to display. +
+|Sending module |no |yes
+|SYNCHRO |10 |no parameter, this message is synchronous call that returns the datetime on the msgserver computer |Reserved |no |yes
+|  | * |  |  |  | *
+|GenericBroadcast | | | | |
+|MANUAL_BLOCKING_REFRESH |31 |no param |Sending Remisol |no |yes
+|NET_MESSAGEBOX |32 |param 1: String to display in message box . MSG#XXX Starting tag is used to filter receipt |Sending Remisol |no |yes
+|  | * |  |  | * | *
+|HostNotify | | | | |
+|HOST_NOTIFY_INCOMING_PROG |49 |param 1: tubid +
+param 2: hosid (host identifiant) +
+param 3 : 1 demo updated / 0 demo not updated |Sending host |yes |yes
+|HOST_NOTIFY_INCOMING_CLEAR |50 |param 1: tubid +
+param 2: 1 full clear / 0 partial clear +
+param 3 : _hosid |Sending host |yes |yes
+|HOST_NOTIFY_INCOMING_RERUN |51 |param 1: tubid +
+param 2: hosid (host identifiant) +
+param 3 : 1 demo updated / 0 demo not updated |Sending host |yes |yes
+|HOST_NOTIFY_CONTROL_RECALL_DONE |52 |param 1: tubid +
+param 2: hosid (host identifiant) |Sending host |yes |yes
+|HOST_NOTIFY_RECALL_DONE |53 |param 1: tubid +
+param 2: hosid (host identifiant) |Sending host |yes |yes
+|HOST_NOTIFY_INCOMING_HQ_PROG |69 |param 1: tubid +
+param 2: hosid +
+param 3 : anaid |Sending host |yes |yes
+|  | * |  |  |  |
+|HostOrder | | | | |
+|HOST_ORDER_RECALL_RUN |44 |param 1 : runid |Receiving host |no |yes
+|HOST_ORDER_RECALL_TUBE |45 |param 1 : tubid |Receiving host |no |yes
+|HOST_ORDER_NOTIFY_PROG_TO_HOST |46 |param 1 : tubid |Receiving host |no |yes
+|HOST_ORDER_HOSTQUERY |47 |param 1: a string representing a list of sample id separated by comma character +
+Host query manuel a partir remisol |Receiving host |no |yes
+|HOST_ORDER_TRACK_RECALL |48 |param 1: message type (101 or 103 ) can be extended in next version +
+param 2: frame id (ide of the fram in miscfield table |Receiving host |no |yes
+|  | * |  |  | * | 
+|IntranetSend | | | | |
+|INTEGRATION |12 |Ask for diffpad result / comment integration +
+param 1: tubid |Sending web service |yes |yes
+|  |* * |  |  |* * |* *
+|InstrumentNotify | | | | |
+|INSTRUMENT_NOTIFY_CLEAR_DONE |37 |param 1: status +
+param 2: progid (id of programation table) +
+param 3 : anaid |Sending instrument |yes |yes
+|INSTRUMENT_NOTIFY_INCOMING_CONTROL |38 |param 1: tubid +
+param 2 : anaid |Sending instrument |yes |yes
+|INSTRUMENT_NOTIFY_INCOMING_RESULT |39 |param 1: tubid +
+param 2 : anaid |Sending instrument |yes |yes
+|INSTRUMENT_NOTIFY_PROG_DONE |40 |param 1: status +
+param 2: tubid +
+param 3 : anaid +
+param 4 : aliquotid |Sending instrument |yes |yes
+|INSTRUMENT_NOTIFY_INCOMING_RESULT_WITH_PROG_REQUEST |41 |param 1: tubid +
+param 2 : anaid |Sending instrument |yes |yes
+|INSTRUMENT_NOTIFY_ARRAYENDOFRUN |42 |param 1: anaid |Sending instrument |no |yes
+|INSTRUMENT_NOTIFY_ARE_YOU_THERE_DONE |43 |param 1: status +
+param 2 : anaid |Sending instrument |no |yes
+|INSTRUMENT_NOTIFY_DOUBLE_HOSTQUERY |67 |param 1 : anaid +
+param 2 : sampleid id list (string) |Sending instrument |no |yes
+|NETMSG_INSTRUMENT_NOTIFY_SIMUL_CLEAR_DONE |76 |param 1: status +
+param 2: tubid +
+param 3: anaid |Sending instrument |yes |yes
+|INSTRUMENT_NOTIFY_TRACK_INFO |68 |param 1: message type (101 or 103 ) can be extended in next version +
+param 2: frame id (ide of the fram in miscfield table) +
+param 3 : anaid +
+param 4 : TrackEventType |Sending instrument |no |yes
+|INSTRUMENT_NOTIFY_AUTOMATION_TRACK_INFO |80 |param 1: frameType +
+param 2: eventType +
+param 3: anaid** +
+param 4:** tubehistoid |Sending instrument |yes |yes
+|INSTRUMENT_NOTIFY_POWERLINK_FEEDBACK |81 |param 1: feedbackValue +
+param 2: tubid +
+param 3: anaid |Sending instrument |yes |yes
+|INSTRUMENT_NOTIFY_SIMUL_CLEAR_DONE |76 |param 1: status +
+param 2: tubid +
+param 3 : anaid |Sending instrument |yes |yes
+|NOTIFY_TEST_AVAILABILITY |78 |param 1: chiid +
+param 2: anaid |Sending instrument |no |no
+|NOTIFY_SAMPLE_ERROR |79 |param 1: tubid | | |* *
+|INSTRUMENT_NOTIFY_POWERLINK_FEEDBACK |81 |param 1: feedbackValue +
+param 2: tubid +
+param 3 : anaid |Sending instrument |yes |yes
+|NETMSG_INSTRUMENT_NOTIFY_INSTRUMENT_EVENT |87 |param 1: eventID +
+param 2 : anaid |Sending instrument |yes |yes
+| | | | | |
+|  |* * |  |  |* * |* *
+|InstrumentOrder | | | | |
+|DOWNLOAD |3 |param 1: tubid +
+param 2 : anaid |Receiving instrument |no |yes
+|CLEARCUP |4 |param 1: tubid +
+param 2 : anaid |Receiving instrument |no |yes
+|CLEAR_DOWNLOAD |15 |param 1: tubid +
+param 2 : anaid |Receiving instrument |no |yes
+|PARTIALCLEAR_NOTIFY |33 |param 1: progid +
+param 2 : anaid |Receiving instrument |no |yes
+|GENERIC_PROG |34 |param 1: progid +
+param 2 : anaid +
+param 3: clear | | |yes
+|ARE_YOU_THERE |35 |no param | |NETMSG_INSTRUMENT_HIGH_TASK,_anaid, |yes
+|SET_DEFAULT_RACK_ARRAY |70 |param 1 : rack information (string) |  |NETMSG_GENERIC_PROG,0, |yes
+|  |* * |  |  |* * |* *
+|LicenseServiceNotify | | | | |
+|NETMSG_LICENSE_SERVICE_NOTIFY_START |98 |param 1: License Server |Every modules protected by License |no |no
+|  |* * |  |  |  | 
+|LicenseServiceRequest | | | | |
+|NETMSG_LICENSE_SERVICE_LOGON_REQUEST |95 |param 1: License Server +
+param 2: License Type (REMISOL, INSTRUMENT, HOST, LIAISONXL, …) +
+param 3: Module ID (ID that allows to identify the module among the others) |module => License Manager |no |no
+|NETMSG_LICENSE_SERVICE_LOGOUT_REQUEST |96 |param 1: License Server +
+param 2: License Type (REMISOL, INSTRUMENT, HOST, LIAISONXL, …) +
+param 3: Module ID (ID that allows to identify the module among the others) |module => License Manager |no |no
+|NETMSG_LICENSE_SERVICE_CHECK_MIGRATION |99 |param 1: License Server +
+param 2: Dongle Number |module receiver |no |no
+|NETMSG_LICENSE_SERVICE_SENDPMFDATA |97 |param 1: License Server +
+param 2: PMF data serialized |module receiver |no |no
+|NETMSG_LICENSE_SERVICE_GETLICENSEDATA |100 |param 1: License Server |module => Service Manager |no |no
+|  |* * |  |  |* * |* *
+|ModuleNotify | | | | |
+|NETMSG_MODULE_NOTIFY_SAMPLELATE |85 |param 1: sampleID +
+param 2: parameters list (separated by comma) +
+param 3: sample late date +
+param 4: comment +
+param 5: message index +
+param 6: total number of tubes |All the Remisols receive this notification that comes from Dashboard |no |no
+|  | | | | | 
+|MonitoringNotify | | | | |
+|MONITORING_NOTIFY_ARE_YOU_EXISITING_DONE |54 |param 1: task type +
+param 2: task id +
+param 3 : status |Sending module |no |no
+|MONITORING_NOTIFY_MODULE_STARTED |55 |param 1: task type +
+param 2: task id |Sending module |no |no
+|MONITORING_NOTIFY_MODULE_STOPPING |56 |param 1: task type +
+param 2: task id |Sending module |no |no
+|MONITORING_NOTIFY_COMM_STATUS |57 |param 1: task type +
+param 2: task id +
+param 3 : status +
+//enum LEDSTATE {LEDGREEN=0, LEDRED=1 ,LEDDISABLE=2 , LEDOFF=3, LEDBLOCK=4,LEDNOVISIBLE=5 }; 
+|Sending module |no |no
+|MONITORING_NOTIFY_SERVICE_ERROR |58 |param 1: task type +
+param 2: task id +
+param 3 : error info (string) |Sending module |no |no
+|MONITORING_NOTIFY_SERVICES_STATUS |93 |param 1: computer name +
+param 2: requested services list with the format : Service1\^Status1\|Service2^Status2\|… +
+// Status : 1: stopped, 4: running/started, 2: start pending, 3: stop pending, 5: continue pending, 6: pause pending, 7: service paused 
+|Sending "Service Manager" |no |no
+|MONITORING_NOTIFY_MODULE_STARTING |59 |param 1: task type +
+param 2: task id |modulethat is starting |no |no
+|MONITORING_NOTIFY_MODULE_STOPPED |60 |param 1: task type +
+param 2: task id |module stopped |no |no
+|  |* * |  |  |* * |* *
+|MonitoringRequest | | | | |
+|MONITORING_REQUEST_ARE_YOU_EXISTING_REQUEST |61 |param 1: task type +
+param 2: task id |module receiver |no |no
+|MONITORING_REQUEST_DISABLE_REQUEST |62 |param 1: task type +
+param 2: task id |module receiver |no |no
+|MONITORING_REQUEST_ENABLE_REQUEST |63 |param 1: task type +
+param 2: task id |module receiver |no |no
+|MONITORING_REQUEST_STOP_REQUEST |64 |param 1: task type +
+param 2: task id |module receiver |no |no
+|MONITORING_REQUEST_START_SERVICE |89 |param 1: computer name +
+param 2: service name |module => Service Manager |no |no
+|MONITORING_REQUEST_STOP_SERVICE |88 |param 1: computer name +
+param 2: service
+||
+|===
+
+===== Sorted by ID
+
+[width="100%",options="header",]
+|===
+|*Event name (and linked interface)* |*Event ID*
+|DOWNLOAD |3
+|CLEARCUP |4
+|RERUNMESSAGE |6
+|REFLEXMESSAGE |7
+|DISPLAY |8
+|DISPLAY_LS_RESOURCE |9
+|SYNCHRO |10
+|NETMSG_BARCODE_NOTIFY_PRINTLABEL |11
+|INTEGRATION |12
+|CLEAR_DOWNLOAD |15
+|ASK_TUBE_DIAG |16
+|ASK_REQUEST_DIAG |17
+|ASK_PATIENT_DIAG |18
+|ASK_TUBE_TEST |19
+|ASK_REQUEST_TEST |20
+|ASK_PATIENT_TEST |21
+|DIAG_RECEIVED |22
+|TEST_RECEIVED |23
+|RULES_PLAYED |24
+|RULES_UPDATED |27
+|RESTART_REQUESTED |28
+|PROG_STATUS_REFRESH |29
+|REQUEST_REFRESH |30
+|MANUAL_BLOCKING_REFRESH |31
+|NET_MESSAGEBOX |32
+|PARTIALCLEAR_NOTIFY |33
+|GENERIC_PROG |34
+|ARE_YOU_THERE |35
+|ANACODE_UPDATED |36
+|INSTRUMENT_NOTIFY_CLEAR_DONE |37
+|INSTRUMENT_NOTIFY_INCOMING_CONTROL |38
+|INSTRUMENT_NOTIFY_INCOMING_RESULT |39
+|INSTRUMENT_NOTIFY_PROG_DONE |40
+|INSTRUMENT_NOTIFY_INCOMING_RESULT_WITH_PROG_REQUEST |41
+|INSTRUMENT_NOTIFY_ARRAYENDOFRUN |42
+|INSTRUMENT_NOTIFY_ARE_YOU_THERE_DONE |43
+|HOST_ORDER_RECALL_RUN |44
+|HOST_ORDER_RECALL_TUBE |45
+|HOST_ORDER_NOTIFY_PROG_TO_HOST |46
+|HOST_ORDER_HOSTQUERY |47
+|HOST_ORDER_TRACK_RECALL |48
+|HOST_NOTIFY_INCOMING_PROG |49
+|HOST_NOTIFY_INCOMING_CLEAR |50
+|HOST_NOTIFY_INCOMING_RERUN |51
+|HOST_NOTIFY_CONTROL_RECALL_DONE |52
+|HOST_NOTIFY_RECALL_DONE |53
+|MONITORING_NOTIFY_ARE_YOU_EXISITING_DONE |54
+|MONITORING_NOTIFY_MODULE_STARTED |55
+|MONITORING_NOTIFY_MODULE_STOPPING |56
+|MONITORING_NOTIFY_COMM_STATUS |57
+|MONITORING_NOTIFY_SERVICE_ERROR |58
+|MONITORING_NOTIFY_MODULE_STARTING |59
+|MONITORING_NOTIFY_MODULE_STOPPED |60
+|MONITORING_REQUEST_ARE_YOU_EXISTING_REQUEST |61
+|MONITORING_REQUEST_DISABLE_REQUEST |62
+|MONITORING_REQUEST_ENABLE_REQUEST |63
+|MONITORING_REQUEST_STOP_REQUEST |64
+|MSGBUFFER_RECEIVE_UNDELIVRED_MESSAGE |65
+|MSGBUFFER_RECEIVE_NEWMSGSERVER_CLIENT |66
+|INSTRUMENT_NOTIFY_DOUBLE_HOSTQUERY |67
+|INSTRUMENT_NOTIFY_TRACK_INFO |68
+|HOST_NOTIFY_INCOMING_HQ_PROG |69
+|SET_DEFAULT_RACK_ARRAY |70
+|DICTIONARY_NOTIFY_CONNECTION_UPDATED |71
+|DICTIONARY_NOTIFY_PARAM_UPDATED |72
+|MSGBUFFER_RECEIVE_DUMPREQUEST |73
+|MSGBUFFER_RECEIVE_FLUSHCACHE |74
+|DICTIONARY_NOTIFY_RESET_IDS |75
+|INSTRUMENT_NOTIFY_SIMUL_CLEAR_DONE |76
+|SAMPLE_RECALL |77
+|NOTIFY_TEST_AVAILABILITY |78
+|NOTIFY_SAMPLE_ERROR |79
+|INSTRUMENT_NOTIFY_AUTOMATION_TRACK_INFO |80
+|POWERLINK_FEEDBACK |81
+|NETMSG_DICTIONARY_NOTIFY_QC_UPDATED |82
+|NETMSG_BARCODE_NOTIFY_PRINTQCLABEL |83
+|NETMSG_BARCODE_ORDER_PRINTLABEL |84
+|NETMSG_MODULE_NOTIFY_SAMPLELATE |85
+|NETMSG_REMISOL_ORDER_QCONCALL |86
+|NETMSG_INSTRUMENT_NOTIFY_INSTRUMENT_EVENT |87
+|NETMSG_MONITORING_REQUEST_STOP_SERVICE |88
+|NETMSG_MONITORING_REQUEST_START_SERVICE |89
+|NETMSG_MONITORING_REQUEST_GETSERVICESTATUS |92
+|NETMSG_MONITORING_NOTIFY_SERVICES_STATUS |93
+|NETMSG_MONITORING_REQUEST_RESET_SERVICE |94
+|NETMSG_LICENSE_SERVICE_LOGON_REQUEST |95
+|NETMSG_LICENSE_SERVICE_LOGOUT_REQUEST |96
+|NETMSG_LICENSE_SERVICE_SENDPMFDATA |97
+|NETMSG_LICENSE_SERVICE_NOTIFY_START |98
+|NETMSG_LICENSE_SERVICE_CHECK_MIGRATION |99
+|NETMSG_LICENSE_SERVICE_GETLICENSEDATA |100
+|NETMSG_DICTIONARY_NOTIFY_USER_RIGHTS_UPDATED |101
+|===
+---
+
+=== Processing
+
+Workflow of subscribing / sending messages
+
+[plantuml]
+....
+@startuml
+participant Sender as S
+participant MsgServer as MS
+participant MsgBuffer as MB
+participant "Receiver(s)" as R
+
+activate MS
+S -> MS: Connect
+MS -> S: Acknowledge Connection
+S -> MS: Subscribe to Events
+MS -> MS: Register Subscription
+MS -> MB: Notify about new connection
+MB -> MS: Repost buffered messages
+S -> MS: Send Message
+MS -> MB: Buffer Message (if no receiver)
+MS -> R: Forward Message (if receiver)
+deactivate MS
+@enduml
+....
+
+
+[plantuml]
+....
+@startuml
+[*] --> Idle
+Idle --> Connected: Connection Successful to the Msg Server
+Connected --> Subscribing: Client Subscription
+Subscribing --> Subscribed: Subscription Successful
+Subscribed --> Sending: Sending Message to the Msg Server
+Subscribed --> Repost: Msg Buffer is notified to repost messages
+Repost --> Forwarding: Messages are reposted
+Sending --> Forwarding: Checking receivers
+Forwarding --> Buffering: No receiver, sending to Msg Buffer
+Subscribed --> Disconnected: Lose connection to Msg Server
+Disconnected --> Idle: Waiting to connect to the Msg Server
+Forwarding --> Received: Messages sent to receiver(s)
+Buffering --> Repost: New Receiver Available
+@enduml
+....
+
+==== Msg Buffer
+
+The workflow of the Msg Buffer service involves several steps:
+
+*Buffering:*
+
+When a message cannot be delivered due to the absence of connected clients, the Msg Server buffers the message using the Msg Buffer service.
+
+*Notification and Retransmission:*
+
+The Msg Buffer service is notified of new client connections.
+It then starts retransmitting buffered messages to the connected clients.
+
+*Automatic Reposting:*
+
+The Msg Buffer service periodically retransmits buffered messages to ensure delivery.
+
+*Buffer Management:*
+
+If the buffer reaches its capacity, older messages may be discarded based on the configured validity period.
+Buffered messages can also be manually flushed or dumped as needed.
+
+*Summary:*
+The Msg Buffer service is essential for maintaining reliable communication within the system. It ensures that messages are not lost and are eventually delivered to the intended recipients, even if they were temporarily disconnected.
+
+[NOTE]
+Some messages are not considered as important so won't be sent to the Msg Buffer even if there is no receiver (Ex: the notification regarding communication status).
+
+=== Configuration
+
+There is no specific configuration of MsgServer.
+
+==== MsgServer configuration
+
+===== REMISOL_MASTER
+
+The REMISOL_MASTER option is used to prioritize message delivery to specific receivers when a message is meant to be delivered to only one recipient. This option ensures that messages are directed to the most appropriate receiver based on predefined priorities (generally the main server of the lab).
+
+*Purpose:*
+The REMISOL_MASTER option allows you to define an ordered list of priority receivers for specific messages that should be delivered to only one receiver. This helps in managing scenarios where multiple potential receivers are available, ensuring that the most suitable receiver gets the message first.
+
+*Configuration:*
+The REMISOL_MASTER option is configured in the Msg Server's configuration file under the [MSGSERVER] section of the remisol.ini. The list of priority receivers is specified as a semicolon-separated list. This option is only relevant in the "remisol.ini" on the Msg Server computer (no need to set it on the "client" of the service).
+
+*Remisol.ini*
+[source]
+----
+[MSGSERVER]
+REMISOL_MASTER=<Receiver1>;<Receiver2>;...;<ReceiverN>
+----
+
+*Example Configuration:*
+
+[source]
+----
+[MSGSERVER]
+REMISOL_MASTER=R2000;R2001;R2002
+----
+
+In this example, if a message that needs to be delivered to only one receiver is received, the Msg Server will first attempt to deliver it to R2000. If R2000 is not available, it will then attempt to deliver it to R2001. If R2001 is also not available, it will try R2002. If none of the specified receivers are available, the message will follow the default order of subscription.
+
+*Default Behavior:*
+If the REMISOL_MASTER option is not set or is empty, the Msg Server will deliver messages based on the order of subscription. This means the first receiver to subscribe will be given the highest priority, followed by subsequent subscribers.
+
+===== MAX_CLIENTS
+
+The MAX_CLIENTS option is used to define the maximum number of clients that can simultaneously connect to the Msg Server. This configuration setting helps manage and limit the resources used by the Msg Server, ensuring it operates efficiently and within its capacity.
+
+*Configuration:*
+The MAX_CLIENTS option is configured in the Msg Server's remisol.ini file under the [MSGSERVER] section.
+
+*Remisol.ini*
+[source]
+----
+[MSGSERVER]
+MAX_CLIENTS=600 (default value)
+----
+
+[NOTE]
+If the limit is reached, a message will be broadcasted to all Remisol.
+
+===== COMSERVER
+
+*Purpose:*
+The COMSERVER option is used to specify a list of Msg Server that the client components will connect to. This option allows for redundancy, load balancing, and scalability by defining multiple Msg Servers that can handle client connections.
+
+*Configuration:*
+The COMSERVER option is configured in the "remisol.ini" configuration file on the client side under the [REMISOL] section. It lists the server addresses and optional port numbers separated by semicolons (;).
+
+*Remisol.ini*:
+
+[source]
+----
+[REMISOL]
+COMSERVER=<Server1>:<Port1>;<Server2>:<Port2>;...;<ServerN>:<PortN> (default is empty, meaning "localhost")
+COMPORT=<Port> (default is 323)
+----
+
+<Server1>, <Server2>, ..., <ServerN>: These represent the addresses of the Msg Servers. Each server can optionally include a port number separated by a colon (:).
+If the "Port" is not filled, it will used the default port which is *323*.
+
+*Example Configuration:*
+
+[source]
+----
+[REMISOL]
+COMSERVER=ServerA
+----
+
+This is the minimal setup which means the component will connect to the Msg Server of ServerA computer using the default port (323).
+
+[source]
+----
+[REMISOL]
+COMSERVER=ServerA:1234;ServerB:5678;ServerC
+----
+
+In this example, the COMSERVER option specifies three Msg Servers:
+
+ServerA with port 1234 + 
+ServerB with port 5678 + 
+ServerC with the default port.
+
+*Connection workflow*
+
+[plantuml]
+....
+@startuml
+title COMSERVER Option Example
+
+actor Client
+
+participant "Config File" as Config
+participant "Server A" as ServerA
+participant "Server B" as ServerB
+participant "Server C" as ServerC
+participant "LocalHost" as LocalHost
+
+Client -> Config: Read COMSERVER option
+Config -> Client: "ServerA:1234;ServerB:5678;ServerC"
+
+Client -> ServerA: Attempt connection (port 1234)
+alt ServerA Available
+    ServerA -> Client: Connection Successful
+else ServerA Unavailable
+    Client -> ServerB: Attempt connection (port 5678)
+    alt ServerB Available
+        ServerB -> Client: Connection Successful
+    else ServerB Unavailable
+        Client -> ServerC: Attempt connection (default port)
+        alt ServerC Available
+            ServerC -> Client: Connection Successful
+        else ServerC Unavailable
+            Client -> LocalHost: Attempt connection (default port)
+            alt LocalHost Available
+                LocalHost -> Client: Connection Successful
+            else LocalHost Unavailable
+                Client -> Client: Connection Failed
+            end
+        end
+    end
+end
+
+@enduml
+....
+
+==== MsgBuffer configuration
+
+[source]
+----
+[MSGBUFFER]
+Capacity=99999
+Sending_Start_Delay=5
+Sending_period=5
+Validity=1
+DUMP_PATH=c:\Remisol\MsgBufferDump
+PERIODIC_REPOST=15
+----
+
+===== Capacity
+
+Maximum number of messages which can be stored by the Msg Buffer. +
+Default: 99999 messages.
+
+===== Sending_Start_Delay
+
+Time in milliseconds to wait before sending the first buffered message after a new client has subscribed. +
+Default: 5 ms.
+
+===== Sending_period
+This option specifies the period (in milliseconds) between sending messages when reposting events. +
+Default: 5ms.
+
+===== Validity
+This option specifies the validity period (in hours) for a message. Only messages within this validity period will be reposted. +
+Default: 1 hour.
+
+===== DUMP_PATH
+This option specifies the file path where the event list memory dump will be saved. +
+Default: MsgBufferDump
+
+===== PERIODIC_REPOST
+This option specifies the period (in minutes) for reposting events periodically. +
+Default: 15 minutes.
+
+=== Msg Config tool
+
+==== Purpose
+
+Today, it is possible to run multiple Remisol / Host / Instruments / Services instances on the same network. +
+Each component has default subscriptions to many messages (depending of the function of the component). +
+These subscriptions are hard-coded and registration of these messages are automatically done at the component start-up (Msg Server connection). +
+
+The Msg Config is a tool provided with Remisol which allows to manage these subscriptions. This application allows you to view the default subscriptions in effect on the system, as well as create and modify custom subscriptions. The principle is relatively simple.
+
+==== Description
+
+image:dd-msgserver-msgconfig.png[.adoc_images/dd-msgserver-msgconfig.png]
+
+On the left, a tree structure allows you to select the task for which you want to view subscriptions. These tasks are classified by type (Instrument / Remisol / Barcode, etc.). For each task, we differentiate between 2 types of subscriptions according to the type of event involved (notification or order). The subscriptions displayed on the right represent the messages that the MSG Server will send to the task selected on the left.
+
+In the screenshots above, we can see that the Remisol on AL-WIN11 is subscribed to the following notification messages:
+
+* EV#156 and EV#21 messages generated by any Remisol on the network
+* Reflex and rerun triggered on tubes assigned to the LH500-I (means that this instrument is managed by AL-WIN11)
+
+New custom subscriptions can be created with the tool and will be applied at the next start of the components.
+
+==== Data
+
+All custom subscriptions of a Remisol are stored in the database. All subscriptions are centralized in this location, starting with the default subscriptions. Here is a description of the fields in the SubscriptionConfig table.
+
+[cols="1,1", options="header"]
+|===
+| Field Name       | Description
+
+| subscriptionID   | Unique identifier of the subscription
+| SubscriberType   | Type of subscribed task
+| SubscriberID     | Identifier of the subscribed task
+| MsgType          | Type of message managed by this subscription
+| MsgID            | Identifier of the message managed by this subscription
+| TaskType         | Type of the task linked to the message
+| TaskID           | Identifier of the task linked to the message
+| ReadOnly         | Can the subscription be modified/deleted by a user (via msgConfig)
+|===
+
+[NOTE]
+Subscriptions are a part of the dictionary of Remisol. When loading a dictionary, the user has the choice to load or not the custom subscriptions. 
+
+=== Dependencies (SOUPs)
+
+No dependency for this Software Unit.
+
+== Risk Mitigations 
+
+[options="header"]
+|====
+|Requirement ID | Requirement Title | SRA ID | SRA Title | Mitigation Implementation
+|- | - | -| -| -
+|====
+
+
+
+== Change History
+
+[options="header"]
+|====
+|Revision|Author name|Change Description
+|1.0|Arnaud Leclaire|First Version
+|====
+
+
+include::../approvals.adoc[]

@@ -1,0 +1,7 @@
+I would like to perform a review of a detailed design document for a software unit in a middleware software product for Diagnostic Lab. 
+This product is classified as class C. The document is in ascii doc format. 
+I would like you to perform a multi-pass review on the document on the criteria below. The answers should be formatted in plain text.
+Criteria 1: List typographic errors
+Criteria 2: List tables which are not introduced by a sentence.
+Criteria 3: List diagrams which are not introduced by a sentence.
+Criteria 4: List top 5 issues on the actual content of the design document, not its format.
