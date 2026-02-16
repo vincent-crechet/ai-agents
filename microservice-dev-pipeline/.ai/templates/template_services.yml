@@ -1,0 +1,23 @@
+# Service Decomposition
+#
+# Change History:
+#   | Version | Date       | Trigger             | Description | Downstream Impact |
+#   |---------|------------|---------------------|-------------|-------------------|
+#   | 1.0     | [Date]     | Initial development | Created     | —                 |
+
+services:
+
+  [service-name]:
+    description: >
+      [One paragraph describing the service's bounded context and responsibilities]
+    owned_entities:
+      - [EntityName]  # [brief description of fields]
+    publishes:
+      - [EventName]  # [When is this event published]
+    consumes:
+      - [EventName]  # [From which service]
+    api_type: REST  # REST | GraphQL | gRPC
+    use_cases:
+      - UC-XXX  # [Use case title]
+
+  # Repeat for each service

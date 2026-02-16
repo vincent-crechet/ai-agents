@@ -1,0 +1,50 @@
+# Change Types
+#
+# Defines how different types of changes enter the activity pipeline.
+# Every change starts with a file in design-changes/ describing the business need or change request.
+# Activity 00 (impact analysis) classifies the change and determines which activities must run.
+# For greenfield (new_product), the pipeline starts directly at activity 01.
+#
+# The design-changes file name (without extension) becomes the {change_ref} used to namespace
+# briefs and track progress in design-changes/changelog.yml.
+# Example: design-changes/02-add-observability.txt → change_ref = "02-add-observability"
+
+new_product:
+  description: "Greenfield — full pipeline from business needs"
+  trigger_example: "New product request"
+  pipeline: [01, 02, 03a, 03b, 04, 05, 06]
+  entry_activity: 01
+  note: "No impact analysis needed — start directly at activity 01"
+
+new_feature:
+  description: "New use case on existing product"
+  trigger_example: "FEATURE-REQUEST: Add analytics dashboard"
+  pipeline: [00, 01, 02, 03a, 03b, 04, 05, 06]
+  entry_activity: 00
+  note: "Activities 01 and 02 update existing artifacts, not create from scratch"
+
+requirement_change:
+  description: "Existing requirement modified"
+  trigger_example: "CHANGE-REQUEST: Add rate limiting to API"
+  pipeline: [00, 03a, 03b, 04, 05, 06]
+  entry_activity: 00
+
+new_requirement:
+  description: "New requirement for existing service"
+  trigger_example: "REGULATION: Must log all access events"
+  pipeline: [00, 03a, 03b, 04, 05, 06]
+  entry_activity: 00
+
+contract_change:
+  description: "Interface change (new endpoint, event, DTO)"
+  trigger_example: "TECH-DEBT: Split response DTO for v2 API"
+  pipeline: [00, 03b, 04, 05, 06]
+  entry_activity: 00
+  prerequisite: "Requirement must already be updated (03a)"
+
+bug_fix:
+  description: "Defect in existing service"
+  trigger_example: "DEFECT-042: Duplicate input returns 500 instead of existing resource"
+  pipeline: [00, 03a, 05]
+  entry_activity: 00
+  note: "03a updates requirement to clarify expected behavior before code is changed"

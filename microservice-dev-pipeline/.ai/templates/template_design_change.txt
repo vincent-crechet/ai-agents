@@ -1,0 +1,27 @@
+---
+title: <Short descriptive title>
+type: <new_product | new_feature | requirement_change | new_requirement | contract_change | bug_fix>
+services: [<optional: list of affected services if known>]
+---
+
+<Free-text description of the change.>
+<Describe the business need, the problem, or the desired behavior.>
+<Be specific enough for activity 00 to classify impact, but stay at the business/product level — no implementation details.>
+
+## GUIDELINES FOR WRITING DESIGN CHANGES
+
+### DO:
+- Describe the WHAT and WHY, not the HOW
+- Be specific about the desired outcome or behavior
+- Mention affected user journeys if relevant
+- Include context about the problem being solved (for bug fixes / requirement changes)
+
+### DO NOT:
+- Prescribe technical solutions (that's the Architect's job)
+- Reference specific code, files, or implementation details
+- Mix multiple unrelated changes in one file — create separate files instead
+
+### NOTES:
+- The `type` field is a hint — activity 00 will confirm or reclassify
+- The `services` field is optional — the impact analysis will determine actual scope
+- File naming convention: `<number>-<kebab-case-title>.txt` (e.g., `02-add-observability.txt`)

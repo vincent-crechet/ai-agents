@@ -30,3 +30,12 @@ Translates natural language queries into Python scripts for local data analysis.
 Provides a structured multi-step workflow with prompt templates to guide AI in creating use cases, detailed mockup descriptions, and working HTML prototypes using Bootstrap 5. The progressive approach leverages AI domain knowledge during use case definition and ensures mockup descriptions are finalized before HTML generation, preventing misaligned implementations.
 
 [View Project](mockup-factory/)
+
+### 4. Microservice Development Pipeline
+*Created: January 2026*
+
+**Purpose**: Transform business needs into production-ready backend microservices using an AI-driven activity pipeline.
+
+Guides AI through use case definition, decomposition into microservices, independent service development (requirements, contracts, tests, implementation), and integration testing. Features human review gates at critical decision points and full traceability with change history — suitable for regulated industries.
+
+[View Project](microservice-dev-pipeline/)

@@ -1,0 +1,68 @@
+# AI-Driven Microservice Development Pipeline
+
+An activity-based pipeline that transforms business needs into working backend microservices using AI agents (Claude). This repository contains the **pipeline definition** — YAML activity files, templates, and technical documentation that orchestrate AI-driven development.
+
+## What This Is
+
+A reusable framework (not an implemented application) that guides AI through:
+1. **Use case definition** — Product definition and user-observable behavior
+2. **Service decomposition** — Breaking use cases into microservices with clear boundaries
+3. **Independent microservice development** — Requirements, contracts, tests, and implementation per service
+4. **Integration testing** — Docker Compose orchestration with real service harnesses
+
+Point an AI agent at a business need, and it executes the pipeline to generate a complete microservice application.
+
+## Why This Approach
+
+**Token-efficient:** Decomposes work into discrete activities — each reading 3-5 files instead of an entire codebase.
+
+**Human review gates:** AI proposes, human approves at critical points (use cases, service boundaries, requirements, tests).
+
+**Traceable evolution:** Every change flows through impact analysis and produces versioned briefs with change history — audit trails for regulated industries.
+
+## The Pipeline
+
+```
+design-changes/                        ← Business need entry point
+       │
+  01  Business Analysis                ← Use cases, product definition
+       │
+  02  Service Decomposition            ← Microservice boundaries, workflows
+       │
+       ├─────────────┬─────────────┐
+  03a Requirements   ║   03b Contracts   ← Per-service specs + Python ABCs
+       └─────────────┴─────────────┘
+                     │
+  04  Use Case Tests                   ← Tests with mock harnesses
+       │
+  05  Service Implementation           ← Independent development per service
+       │
+  06  Integration Tests                ← Docker Compose, real services
+```
+
+Impact analysis (activity 00) determines which activities run for each change type.
+
+## Quick Start
+
+1. Create `design-changes/01-url-shortener.txt`:
+   ```
+   URL shortener service: shorten URLs, retrieve originals, track statistics
+   ```
+
+2. Run in Claude Code: `process design-changes/01-url-shortener.txt`
+
+3. Review at gates: use cases → service boundaries → requirements → tests
+
+4. Get output: `product/`, `architecture/`, `services/`, `use_case_tests/`
+
+**Prerequisites:** [Claude Code](https://docs.anthropic.com/en/docs/claude-code), Python 3.11+, Docker
+
+## Architecture
+
+Generated microservices follow hexagonal architecture with repository patterns, Python ABCs for contracts, test doubles for isolation, and Docker containerization.
+
+## Documentation
+
+- **[CLAUDE.md](CLAUDE.md)** — Running activities
+- **[.ai/README.md](.ai/README.md)** — Complete specification
+- **business_needs.txt** — Example (URL shortener)
