@@ -1,0 +1,13 @@
+When discussing about features, capabilities or mockup, it is sometimes useful to define "use cases".
+A use case can be used to understand how the different actors in the lab (LIS, instruments, automation lines, staff, harmony product, other systems, ...) interact with each other to realize a particular goal.
+
+
+A use case should be defined as follow:
+* Title: the title of the use case
+* Need: which problem are we trying to solve
+* Steps: a list of steps. each step includes a single actor. example of steps are provided below
+** LIS sends an order an CBC/DIFF on an hematology sample
+** Instrument sends HQ to Harmony.
+** Lab Technician loads sample on the automation line.
+** Hamrony displays the alert message 'XXXXXX'
+** Lab Technician logs in Harmony

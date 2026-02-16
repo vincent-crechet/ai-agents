@@ -1,0 +1,19 @@
+Use Case: Saline Replacement for Lipemic Hematology Sample
+
+User: Michael Chen, Hematology Lab Technician, Springfield West
+
+Problem: A hematology sample shows a Hemoglobin/Hematocrit discrepancy indicative of lipemic interference.
+
+Need: Michael needs to confirm lipemia using Chemistry results and then perform saline replacement to ensure accurate hematology reporting.
+
+Steps:
+* The system displays Patient X's hematology sample in Michael's worklist with a critical flag, showing: Hgb = 19 g/dL, Hct = 45%, MCHC = 42 g/dL.
+* The user selects Patient X's sample to review details.
+* The system displays an "Intelligent Clinical Guidance" message: "Hgb/Hct/MCHC discrepancy detected. Recommendation: Review Chemistry Cholesterol and Triglycerides for lipemic interference."
+* The user reviews the Chemistry results for Patient X within Harmony's "Patient Unified View," observing Cholesterol = 450 mg/dL and Triglycerides = 900 mg/dL.
+* The system highlights the high lipid values, confirming severe lipemia, and updates "Best Practice Recommendations" to suggest "Perform Saline Replacement."
+* The user selects "Perform Saline Replacement" from the action panel.
+* The system displays a step-by-step guided workflow for the saline replacement procedure and updates the sample status to "On Hold - Saline Replacement."
+* The user performs the saline replacement procedure as guided by the system and then re-runs the sample on the DxH800.
+* The system displays the new hematology results (e.g., Hgb = 15 g/dL, Hct = 45%, MCHC = 33 g/dL), indicating resolution of the discrepancy.
+* The user reviews and verifies the corrected results, then releases them.

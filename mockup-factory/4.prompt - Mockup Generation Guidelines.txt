@@ -1,0 +1,30 @@
+These are guidelines the to generate mockup in HTML
+
+1. Base Framework: Use Bootstrap 5.3.2 as the primary CSS framework. only use the available css/components. do not introduce new CSS class
+2. Color Palette (Minimalist):
+* Avoid excessive use of vibrant colors. Keep the overall aesthetic clean and professional.
+* Reserve colors primarily for functional elements:
+  * Labels, badges, and alerts: Use Bootstrap's "bg-primary", "bg-success", "bg-warning", "bg-danger", "bg-info", "bg-secondary" as appropriate for their semantic meaning (e.g., green for success, red for critical, blue for primary actions).
+  * Progress bars: Use "bg-info" (or other semantically appropriate Bootstrap colors).
+  * Comparison statements: A subtle color (like "text-success" or "text-warning"/"text-danger") for percentage changes (e.g., "5% vs last period") is acceptable.
+* Default text colors: Use neutral shades (e.g., "text-dark", "text-secondary", "text-muted") for most body text, card titles, and general UI elements.
+* Backgrounds: Keep page and card backgrounds light and neutral (e.g., "bg-light", "bg-white").
+3.  Navigation Bar Content:
+* Left Side (Beckman Coulter Logo): use "https://media.beckmancoulter.com/-/media/diagnostics/corporate/logos/beckman-logo-svg.svg?rev=a82dc0186fca49bbab9ea6c0f4baba4c&amp;hash=BB8B15F1028FBE9F66CEF498D1FB06BD" with "height: 28px;"
+* Left Side (Product Name): The product-specific title (e.g., "Lab Performance Optimization," "Sample & Result Audit Trail") should be clear, bold, and in a neutral color (e.g., "text-dark").
+* Right Side (User Information): Display the user's details using this format:
+  * "<span class="fw-bold">User:</span> [User Name]" where [User Name] is a name which works well for US/Europe/Asia
+  * "<span class="fw-bold">Role:</span> [User Role]"
+  * "<span class="fw-bold">Lab:</span> [Assigned Lab Name]"
+  * "<span class="fw-bold">Disciplines:</span> [Disciplines]"
+  * The attribute names (User:, Role:, Lab:, Disciplines:) should be bold ("fw-bold"), and the actual values (User Name, User Role, Lab Name) should be in plain text. Use "nav-text" class for the overall color (a subtle dark gray).
+4.  Card Styling:
+* Subtle Shadows: Use Bootstrap's "shadow-sm" class on cards for a clean, modern depth effect.
+* Ensure all cards in a row have the same height, even if their content is different
+5. Icons: Reduce the usage of Icons to introduce an attribute value. utilize bold text preferably 
+6. Layout & Responsiveness: Ensure the layout is clean, well-spaced, and inherently responsive (which Bootstrap handles well by default).
+7. Data Presentation: Use clear, concise text for data values, and make labels easy to understand. For larger numbers, use 'K' as applicable (e.g., 22.5K).
+8. for badge, include text inside the badge if the mockup description includes a text.
+9. for Charts, chartjs code should be embedded in the html code. embed the canvas chart in a div with a fixed height
+
+Do not do anything at the moment I will provide specific requests after that.

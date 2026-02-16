@@ -1,0 +1,22 @@
+A "mockup definition" should include the following elements:
+
+Application Name: The name of the application the screen belongs to.
+
+Persona: the user who is supposed to used this mockup.
+
+Concept: this should describe the objective of this screen for a end user and how it helps him/her achieve
+important tasks.
+
+Navigation bar: should be only "Default" if it is the standard navigation bar with logo, application name and user information. describe specific elements otherwise.
+
+Main areas: list of main areas which are going to compose the screen below the navigation bar with short description of the area. Areas are listed from top to bottom, left to right
+
+[Area] Description (1 for each Area): 
+* Graphical description of the area using graphical components like "title", "table", "list", "chart", "badge". components are listed top to bottom, left to right.
+* For tables, on top of providing a brief high level description of the table provide the following:
+	* Columns: list of columns
+	* Content: a description of the content in a few lines. do not want to have the actual values for each cell. for example "CBC DIFF results with critical MCHC" or "List of 10 samples ordered by priority with 2 critical 1 STAT and 1 Late" (no need to provide all values in the table)
+
+the mockup definition should only contain text, no html.
+
+Do not do anything at the moment I will provide specific requests after that.

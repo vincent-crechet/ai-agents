@@ -1,0 +1,13 @@
+For mockups to be meaningful, The following Lab Environment should be used.
+
+3 sites: 
+- Primary site called "Springfield East": 1 automation line DxA , 2 chemistry instruments AU-5800, 2 immunology instruments DxI900, 2 hematology DxH800
+- Secondary site called "Springfield West": 1 automation line DxA , 2 chemistry instruments AU-5800, 2 immunology instruments DxI900, 2 hematology DxH800
+- Satelite side called "Springfield South": 1 chemistry instrument AU-5800, 1 immunology instruments DxI900, 1 hematology DxH800
+
+3 users:
+- Anya Sharma: Chemistry & Immunology Lab Technician working in "Springfield East"
+- Michael Chen: Hematology Lab Technician working in "Springfield West"
+- Dr. Elena Petrov: Lab Director working in "Springfield East"
+
+Do not do anything at the moment I will provide specific requests after that.

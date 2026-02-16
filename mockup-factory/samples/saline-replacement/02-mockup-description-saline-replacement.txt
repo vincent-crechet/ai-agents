@@ -1,0 +1,87 @@
+Application Name: Sample Review Management
+
+Persona: Michael Chen
+
+Concept: This screen provides a comprehensive view of a specific patient's sample results, with a primary focus on hematology data. It is designed to guide Michael Chen, the Hematology Lab Technician, through the review process by offering intelligent clinical guidance for discrepancies, such as lipemic interference. The integrated view allows for quick access to relevant chemistry results to confirm pre-analytical issues and provides step-by-step recommendations for resolution, like performing a saline replacement, ensuring accurate and timely reporting.
+
+Navigation bar: Default navigation bar with the Beckman Coulter logo and "Patient Sample Review" on the left side. On the right side, it displays user information: "User: Michael Chen", "Role: Hematology Lab Technician", "Lab: Springfield West", "Disciplines: Hematology".
+
+Main areas:
+
+Patient Demographics: Located at the top left, providing key patient identification details.
+Intelligent Clinical Guidance & Recommendations: A prominent area on the top right, offering actionable insights and a link to detailed procedural guidance.
+Result View Selector (Pills): Positioned below the patient information, allowing switching between different discipline results.
+Sample Details & Results Display: The main central area, showing specific sample information and the detailed analytical results in a tabular format.
+[Area] Description (1 for each Area):
+
+1. Patient Demographics Description:
+
+Graphical description: A card containing several bolded labels with their corresponding text values.
+Content: Displays the selected patient's identification details, including:
+Patient Name: Robert Miller
+Accession ID: ACC1234567
+Date of Birth: 1965-03-15
+Gender: Male
+Age: 60
+2. Intelligent Clinical Guidance & Recommendations Description:
+
+Graphical description: A prominent alert or information card containing a key message and a clickable link.
+Content:
+A bold message: "Hgb/Hct/MCHC discrepancy detected. Recommendation: Review Chemistry Cholesterol and Triglycerides for lipemic interference."
+Below the message, a clickable link: "View Saline Replacement Guidance."
+Popup (triggered by clicking "View Saline Replacement Guidance"):
+Title: "Saline Replacement Procedure Guidance"
+Body:
+Step 1: Confirm Lipemia with Chemistry Results
+"Review Patient Robert Miller's Chemistry panel for Cholesterol and Triglycerides. Look for elevated values and potential 'LIH' (Lipemia Index) flags indicating severe lipemia."
+Step 2: Perform Saline Replacement (if Lipemia Confirmed)
+"1. Centrifuge an aliquot of the original sample.
+Carefully remove the lipemic plasma.
+Add an equal volume of normal saline (0.9% NaCl) to the packed red cells.
+Gently resuspend the cells.
+Re-run the prepared sample on the DxH800 instrument.
+Manually enter or verify the corrected hematology results."
+3. Result View Selector (Pills) Description:
+
+Graphical description: Two horizontal, clickable "pill" or tab-like buttons.
+Content:
+"Hematology Results" (This pill is currently selected and highlighted).
+"Chemistry Results" (This pill is currently unselected).
+4. Sample Details & Results Display Description:
+
+Graphical description: A card containing sample information and a detailed table of results.
+Sample Details: Displays general information about the sample:
+Sample ID: P12345
+Collection Time: 2025-10-26 09:45
+Instrument: DxH800 (W)
+Current Status: Pending Review - Critical (Lipemic)
+Results Table:
+Description: A table presenting the patient's full CBC with differential results, including absolute counts and percentages. Critical or flagged results indicating the Hgb/Hct/MCHC discrepancy and other abnormalities are highlighted.
+Columns: Parameter, Result, Units, Reference Range, Flag
+Content (Hematology - currently displayed):
+WBC: 15.0 K/uL, 4.0-10.0, High (H)
+RBC: 5.0 M/uL, 4.5-5.5, (Normal)
+HGB: 19.0 g/dL, 13.0-17.0, Critical High (C-H) - Highlighted
+HCT: 45.0 %, 39.0-50.0, (Normal)
+MCHC: 42.0 g/dL, 32.0-36.0, Critical High (C-H) - Highlighted
+MCV: 90.0 fL, 80.0-100.0, (Normal)
+MCH: 38.0 pg, 27.0-35.0, High (H)
+RDW: 13.5 %, 11.5-14.5, (Normal)
+PLT: 250 K/uL, 150-450, (Normal)
+Neutrophils (%): 70 %, 40-75, (Normal)
+Neutrophils (Abs): 10.5 K/uL, 2.0-8.0, High (H)
+Lymphocytes (%): 20 %, 15-45, (Normal)
+Lymphocytes (Abs): 3.0 K/uL, 1.0-4.0, (Normal)
+Monocytes (%): 8 %, 2-10, (Normal)
+Monocytes (Abs): 1.2 K/uL, 0.2-1.0, High (H)
+Eosinophils (%): 1 %, 0-5, (Normal)
+Eosinophils (Abs): 0.15 K/uL, 0.0-0.5, (Normal)
+Basophils (%): 1 %, 0-2, (Normal)
+Basophils (Abs): 0.15 K/uL, 0.0-0.2, (Normal)
+Content (Chemistry - if Chemistry pill were selected):
+Cholesterol: 450 mg/dL, <200, Critical High (C-H) - Highlighted, confirming severe lipemia
+Triglycerides: 900 mg/dL, <150, Critical High (C-H) - Highlighted, confirming severe lipemia
+LIH (Lipemia Index): 8, 0-2, Critical (C) - Highlighted, confirming severe lipemia
+Glucose: 95 mg/dL, 70-100, (Normal)
+AST: 25 U/L, 10-40, (Normal)
+ALT: 30 U/L, 7-56, (Normal)

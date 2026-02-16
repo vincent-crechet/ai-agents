@@ -1,0 +1,59 @@
+Can you create a mockup for the following concept
+
+Application Name: Harmony - Application Launcher
+
+Persona: Anya Sharma (Chemistry & Immunology Lab Technician working in "Springfield East")
+
+Concept: This screen serves as a clean, professional, and intuitive central hub for all laboratory applications. It helps users immediately understand their context and quickly access the tools they need for their specific roles, reducing cognitive load through an organized and uncluttered layout.
+
+Navigation bar: Default
+
+Main areas:
+
+Application Cards Grid
+Application Cards Grid Description: A responsive grid (4 columns) of interactive application cards. Each card displays an icon, title, description, and optional status badge. Cards lift on hover; inaccessible cards are disabled. Clicking a card launches the application.
+
+Card 1: Patient Sample Review
+
+Icon: (Represents sample review)
+Title: Patient Sample Review
+Description: Review patient results, resolve clinical exceptions, critical results, and pre-analytical issues.
+Status Indicator: Red badge with "3 Critical Exceptions."
+Card 2: Manual Differential
+
+Icon: (Represents manual differential)
+Title: Manual Differential
+Description: Perform and record manual differential counts for hematology samples.
+Card 3: Lab Operations Monitor
+
+Icon: (Represents real-time monitoring)
+Title: Lab Operations Monitor
+Description: Monitor real-time status of instruments and automation lines, and manage immediate operational issues.
+Status Indicator: Orange badge with "2 Instrument Warnings."
+Card 4: Quality Control Management
+
+Icon: (Represents quality control)
+Title: Quality Control Management
+Description: Review, analyze, and manage QC results, including out-of-control situations and corrective actions.
+Status Indicator: Red badge with "1 QC Out-of-Control."
+Card 5: Real-time Insights Dashboard
+
+Icon: (Represents dashboard/insights)
+Title: Real-time Insights Dashboard
+Description: Aggregated real-time overview of critical lab information across all modalities.
+Card 6: Performance Analytics
+
+Icon: (Represents analytics/charts)
+Title: Performance Analytics
+Description: Analyze key performance indicators (KPIs), identify trends, and review recommendations for operational optimization.
+Card 7: System Configuration
+
+Icon: (Represents settings/configuration)
+Title: System Configuration
+Description: Configure tests, instruments, analytical rules, and site-specific parameters.
+Card 8: Administrator Tools
+
+Icon: (Represents admin tools)
+Title: Administrator Tools
+Description: Manage user access rights, security settings, and global platform parameters.
+(This card would appear disabled for Anya Sharma as she is a Lab Technician, not an Administrator).
