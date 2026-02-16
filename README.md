@@ -1,6 +1,6 @@
 # AI Agents
 
-Automating the use of LLMs for different activities related to the development of medical software.
+This repository showcases different projects demonstrating how AI and Large Language Models (LLMs) can be leveraged for various use cases. Each project explores a specific application of AI, from document analysis and data processing to automated mockup generation.
 
 ## Projects
 
