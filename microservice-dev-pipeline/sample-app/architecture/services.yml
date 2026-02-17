@@ -1,0 +1,36 @@
+# Service Decomposition
+#
+# Change History:
+#   | Version | Date       | Trigger             | Description | Downstream Impact |
+#   |---------|------------|---------------------|-------------|-------------------|
+#   | 1.0     | 2026-02-07 | Initial development | Created     | —                 |
+
+services:
+
+  url-management:
+    description: >
+      Handles URL shortening (long URL to short URL), storage of URL mappings,
+      and resolution/redirection of short URLs back to the original long URL.
+      Exposes a high-performance API for shortening and redirection.
+    owned_entities:
+      - UrlMapping  # short_code, long_url, created_at
+    publishes:
+      - UrlAccessedEvent  # Emitted each time a short URL is resolved/redirected
+    consumes: []
+    api_type: REST
+    use_cases:
+      - UC-001  # Shorten a URL
+      - UC-002  # Redirect via Short URL
+
+  analytics:
+    description: >
+      Tracks access counts for short URLs by consuming UrlAccessedEvent events.
+      Serves a web dashboard displaying the most accessed URLs and their statistics.
+    owned_entities:
+      - UrlAccessStats  # short_code, long_url, access_count
+    publishes: []
+    consumes:
+      - UrlAccessedEvent  # From url-management service
+    api_type: REST
+    use_cases:
+      - UC-003  # View Most Accessed URLs

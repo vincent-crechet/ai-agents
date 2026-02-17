@@ -1,0 +1,13 @@
+# Changelog
+#
+# Tracks design changes processed through the activity pipeline.
+# Each entry records the change file, its type, the pipeline executed, and current status.
+# Updated by activity 00 (or activity 01 for greenfield) at the start and end of pipeline execution.
+
+changes:
+  - id: "01"
+    file: 01-url-shortener.txt
+    type: new_product
+    status: completed
+    pipeline: [01, 02, 03a, 03b, 04, 05, 06]
+    completed_activities: [01, 02, 03a, 03b, 04, 05, 06]

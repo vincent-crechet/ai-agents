@@ -11,6 +11,8 @@ This repository showcases different projects demonstrating how AI and Large Lang
 
 Enables repeatable AI analysis of documents using reusable instruction templates with configurable Azure OpenAI settings.
 
+models tested: chatgpt-4o
+
 [View Project](process_file_with_ai/)
 
 ### 2. Prompt My Data with AI
@@ -19,6 +21,8 @@ Enables repeatable AI analysis of documents using reusable instruction templates
 **Purpose**: Process data files locally using natural language without sending data to the LLM.
 
 Translates natural language queries into Python scripts for local data analysis. Only file structure (first 10 lines) is sent to the LLM, ensuring confidentiality and handling large datasets efficiently.
+
+models tested: chatgpt-4o
 
 [View Project](prompt_my_data_with_ai/)
 
@@ -29,6 +33,8 @@ Translates natural language queries into Python scripts for local data analysis.
 
 Provides a structured multi-step workflow with prompt templates to guide AI in creating use cases, detailed mockup descriptions, and working HTML prototypes using Bootstrap 5. The progressive approach leverages AI domain knowledge during use case definition and ensures mockup descriptions are finalized before HTML generation, preventing misaligned implementations.
 
+models tested: enterprise chatgpt app (likely chatgpt-4.1)
+
 [View Project](mockup-factory/)
 
 ### 4. Microservice Development Pipeline
@@ -36,6 +42,8 @@ Provides a structured multi-step workflow with prompt templates to guide AI in c
 
 **Purpose**: Transform business needs into production-ready backend microservices using an AI-driven activity pipeline.
 
-Guides AI through use case definition, decomposition into microservices, independent service development (requirements, contracts, tests, implementation), and integration testing. Features human review gates at critical decision points and full traceability with change history — suitable for regulated industries.
+Guides AI through use case definition, decomposition into microservices, independent service development (requirements, contracts, tests, implementation), and integration testing with docker compose. Features human review gates at critical decision points and full traceability with change history — suitable for regulated industries.
+
+models tested: Claude Code Sonnet 4.5/Claude Code Opus 4.6
 
 [View Project](microservice-dev-pipeline/)

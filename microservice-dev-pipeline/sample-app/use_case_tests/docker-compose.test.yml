@@ -1,0 +1,103 @@
+networks:
+  test-network:
+    driver: bridge
+
+services:
+  # ===================== Infrastructure =====================
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: guest
+      RABBITMQ_DEFAULT_PASS: guest
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_port_connectivity"]
+      interval: 5s
+      timeout: 10s
+      retries: 10
+      start_period: 15s
+    networks:
+      - test-network
+
+  url-management-db:
+    image: postgres:15-alpine
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: url_management
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+    networks:
+      - test-network
+
+  analytics-db:
+    image: postgres:15-alpine
+    ports:
+      - "5434:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: analytics
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 3s
+      timeout: 5s
+      retries: 10
+    networks:
+      - test-network
+
+  # ===================== Services =====================
+
+  url-management:
+    image: url-management:test
+    ports:
+      - "8001:8000"
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://postgres:postgres@url-management-db:5432/url_management"
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672/"
+      RABBITMQ_EXCHANGE: "url_shortener"
+      BASE_URL: "http://localhost:8001"
+    depends_on:
+      url-management-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - test-network
+
+  analytics:
+    image: analytics:test
+    ports:
+      - "8002:8000"
+    environment:
+      DATABASE_URL: "postgresql+asyncpg://postgres:postgres@analytics-db:5432/analytics"
+      RABBITMQ_URL: "amqp://guest:guest@rabbitmq:5672/"
+      RABBITMQ_EXCHANGE: "url_shortener"
+      SERVICE_NAME: "analytics"
+    depends_on:
+      analytics-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    networks:
+      - test-network

@@ -1,4 +1,9 @@
-url shortener application. 
+---
+title: URL Shortener
+type: new_product
+---
+
+url shortener application.
 the main  objectives of this product is to provide a way to shorten urls (reqsuest short url for long url and get long url from short url) and provide statistics on the most accessed urls.
 the url shorterner features should be available through a high performing API only. the most accessed urls information should be available by an end user in a web application.
 Several requests to shorten a given long url should alawys return the same short url.
